@@ -43,7 +43,7 @@ export default function Home() {
                 <span className="btn-hero-primary__arrow">←</span>
               </Link>
               <Link to="/custom-design?mode=details" className="btn-hero-secondary btn-hero-secondary--dark" style={{color: 'white'}}>
-                <span>الشراء بالتفاصيل</span>
+                <span>الشراء بالتفصيل</span>
                 <Sparkles size={15} />
               </Link>
               <Link to="/custom-design?mode=custom" className="btn-hero-secondary btn-hero-secondary--gray"  style={{color: 'white'}}>
