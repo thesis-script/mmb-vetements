@@ -29,7 +29,7 @@ export default function Home() {
             <h1 className="hero__title">
               <span className="hero__title-line">MMB</span>
               <span className="hero__title-line hero__title-line--sub">Vêtements</span>
-              <span className="hero__title-accent">بالجملة و التصيل</span>
+              <span className="hero__title-accent">بالجملة و التفصيل</span>
             </h1>
 
             <p className="hero__desc">
