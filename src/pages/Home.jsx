@@ -29,7 +29,7 @@ export default function Home() {
             <h1 className="hero__title">
               <span className="hero__title-line">MMB</span>
               <span className="hero__title-line hero__title-line--sub">Vêtements</span>
-              <span className="hero__title-accent">بالجملة فقط</span>
+              <span className="hero__title-accent">بالجملة و التصيل</span>
             </h1>
 
             <p className="hero__desc">
@@ -42,9 +42,13 @@ export default function Home() {
                 <span>منتجاتنا المتوفرة للبيع بالجملة</span>
                 <span className="btn-hero-primary__arrow">←</span>
               </Link>
-              <Link to="/custom-design" className="btn-hero-secondary">
-                <Scissors size={15} />
+              <Link to="/custom-design?mode=details" className="btn-hero-secondary btn-hero-secondary--dark" style={{color: 'white'}}>
+                <span>الشراء بالتفاصيل</span>
+                <Sparkles size={15} />
+              </Link>
+              <Link to="/custom-design?mode=custom" className="btn-hero-secondary btn-hero-secondary--gray"  style={{color: 'white'}}>
                 <span>اطلب تصاميمك الخاصة</span>
+                <Sparkles size={15} />
               </Link>
             </div>
 

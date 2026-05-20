@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Scissors, Upload, Check } from 'lucide-react';
 import { wilayas, fabricTypes, clothingTypes } from '../data/staticData';
 import { useDesignOrders } from '../context/StoreContext';
+import { useLocation } from 'react-router-dom';
 import './CustomDesign.css';
 
 const STEPS = ['معلومات التواصل', 'تفاصيل اللباس', 'تفاصيل التصميم', 'معاينة وإرسال'];
@@ -11,6 +12,10 @@ export default function CustomDesign() {
   const fileInputRef = useRef(null);
   const tarzFileInputRef = useRef(null);
   const logoFileInputRef = useRef(null);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const mode = searchParams.get('mode') === 'details' ? 'details' : 'custom';
+  const isDetailsMode = mode === 'details';
 
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -87,31 +92,6 @@ export default function CustomDesign() {
     reader.readAsDataURL(file);
   };
 
-  const handleLogoSelect = (file) => {
-    if (!file) return;
-    
-    if (file.size > 5 * 1024 * 1024) {
-      alert('حجم الملف يتجاوز 5MB');
-      return;
-    }
-
-    setUploading(true);
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setForm(p => ({
-        ...p,
-        logo: e.target.result,
-        logoPreview: e.target.result,
-      }));
-      setUploading(false);
-    };
-    reader.onerror = () => {
-      alert('خطأ في تحميل شعار العميل');
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -132,7 +112,7 @@ export default function CustomDesign() {
       alert('يرجى ملء جميع معلومات التواصل');
       return;
     }
-    if (!form.nif || !form.nis) {
+    if (!isDetailsMode && (!form.nif || !form.nis)) {
       alert('يرجى إضافة NIF و NIS');
       return;
     }
@@ -151,6 +131,7 @@ export default function CustomDesign() {
 
     const designOrder = {
       id: 'DSG-' + Date.now(),
+      orderType: mode,
       ...form,
       status: 'pending',
       date: new Date().toLocaleDateString('ar-DZ'),
@@ -162,7 +143,7 @@ export default function CustomDesign() {
   };
 
   const canProceed = () => {
-    if (step === 0) return form.name && form.phone && form.email && form.wilaya && form.nif && form.nis;
+    if (step === 0) return form.name && form.phone && form.email && form.wilaya && (isDetailsMode || (form.nif && form.nis));
     if (step === 1) return form.clothingType && form.fabric && form.chest && form.waist && form.hips && form.length;
     if (step === 2) return form.colors.length > 0 && form.description;
     return true;
@@ -177,7 +158,7 @@ export default function CustomDesign() {
           <div className="cart-success__icon">✓</div>
           <h2>تم إرسال طلب التصميم!</h2>
           <p>سيقوم فريق التصميم لدينا بمراجعة طلبكِ وإرسال السعر ومدة الإنجاز في أقرب وقت.</p>
-          <button className="btn-primary" onClick={() => { setSubmitted(false); setStep(0); setForm({ name: '', phone: '', email: '', wilaya: '', address: '', nif: '', nis: '', clothingType: '', fabric: '', quantity: 1, chest: '', waist: '', hips: '', length: '', colors: [], description: '', notes: '', image: null, imagePreview: null, tarzOption: 'no', tarzImage: null, tarzImagePreview: null, logo: null, logoPreview: null }); }}>طلب تصميم آخر</button>
+          <button className="btn-primary" onClick={() => { setSubmitted(false); setStep(0); setForm({ name: '', phone: '', email: '', wilaya: '', address: '', clothingType: '', fabric: '', quantity: 1, chest: '', waist: '', hips: '', length: '', colors: [], description: '', notes: '', image: null, imagePreview: null, tarzOption: 'no', tarzImage: null, tarzImagePreview: null }); }}>طلب تصميم آخر</button>
         </div>
       </div>
     </div>
@@ -227,20 +208,24 @@ export default function CustomDesign() {
                   </div>
                 ))}
                 <div className="form-field">
-                  <label>NIF</label>
-                  <input type="text" placeholder="رقم التعريف الضريبي" value={form.nif} onChange={e => update('nif', e.target.value)} />
-                </div>
-                <div className="form-field">
-                  <label>NIS</label>
-                  <input type="text" placeholder="رقم السجل التجاري" value={form.nis} onChange={e => update('nis', e.target.value)} />
-                </div>
-                <div className="form-field">
                   <label>الولاية</label>
                   <select value={form.wilaya} onChange={e => update('wilaya', e.target.value)}>
                     <option value="">اختاري الولاية</option>
                     {wilayas.map(w => <option key={w} value={w}>{w}</option>)}
                   </select>
                 </div>
+                {!isDetailsMode && (
+                  <>
+                    <div className="form-field">
+                      <label>NIF</label>
+                      <input type="text" placeholder="رقم التعريف الضريبي" value={form.nif} onChange={e => update('nif', e.target.value)} />
+                    </div>
+                    <div className="form-field">
+                      <label>NIS</label>
+                      <input type="text" placeholder="رقم السجل التجاري" value={form.nis} onChange={e => update('nis', e.target.value)} />
+                    </div>
+                  </>
+                )}
                 <div className="form-field form-field--full">
                   <label>العنوان التفصيلي</label>
                   <input type="text" placeholder="الحي، الشارع..." value={form.address} onChange={e => update('address', e.target.value)} />
@@ -348,29 +333,6 @@ export default function CustomDesign() {
                 </div>
               </div>
 
-              <div className="form-field" style={{ marginBottom: 20 }}>
-                <label>رفع شعار العميل (اختياري)</label>
-                <input ref={logoFileInputRef} type="file" accept="image/*" onChange={(e) => handleLogoSelect(e.target.files?.[0])} style={{ display: 'none' }} />
-                <div
-                  className="design-upload"
-                  onClick={() => logoFileInputRef.current?.click()}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {form.logoPreview ? (
-                    <div style={{ textAlign: 'center' }}>
-                      <img src={form.logoPreview} alt="شعار العميل" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, marginBottom: 12 }} />
-                      <p style={{ marginBottom: 8 }}>تغيير الشعار</p>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); setForm(p => ({ ...p, logo: null, logoPreview: null })); }} className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }}>حذف الشعار</button>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload size={uploading ? 0 : 28} />
-                      <p>{uploading ? 'جاري التحميل...' : 'اسحبي الشعار أو اضغطي للاختيار'}</p>
-                      <span>JPG, PNG - حجم أقصى 5MB</span>
-                    </>
-                  )}
-                </div>
-              </div>
 
               <div className="form-field" style={{ marginBottom: 20 }}>
                 <label>نمط التصميم</label>
@@ -432,8 +394,12 @@ export default function CustomDesign() {
                   <div className="preview-row"><span>الاسم:</span><span>{form.name || '-'}</span></div>
                   <div className="preview-row"><span>الهاتف:</span><span>{form.phone || '-'}</span></div>
                   <div className="preview-row"><span>الولاية:</span><span>{form.wilaya || '-'}</span></div>
-                  <div className="preview-row"><span>NIF:</span><span>{form.nif || '-'}</span></div>
-                  <div className="preview-row"><span>NIS:</span><span>{form.nis || '-'}</span></div>
+                  {!isDetailsMode && (
+                    <>
+                      <div className="preview-row"><span>NIF:</span><span>{form.nif || '-'}</span></div>
+                      <div className="preview-row"><span>NIS:</span><span>{form.nis || '-'}</span></div>
+                    </>
+                  )}
                 </div>
                 <div className="preview-section">
                   <h4>تفاصيل اللباس</h4>
@@ -472,7 +438,7 @@ export default function CustomDesign() {
                     <img src={form.imagePreview} alt="الصورة المرجعية" style={{ maxWidth: '100%', borderRadius: 8, marginTop: 8 }} />
                   </div>
                 )}
-                {form.logoPreview && (
+                {!isDetailsMode && form.logoPreview && (
                   <div className="preview-section preview-section--full">
                     <h4>شعار العميل</h4>
                     <img src={form.logoPreview} alt="شعار العميل" style={{ maxWidth: '100%', borderRadius: 8, marginTop: 8 }} />

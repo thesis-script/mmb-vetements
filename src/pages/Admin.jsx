@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { id: 'products', label: 'المنتجات', icon: <Package size={18} /> },
   { id: 'orders', label: 'الطلبات الجاهزة', icon: <ShoppingBag size={18} /> },
   { id: 'design_orders', label: 'طلبات التصميم', icon: <Scissors size={18} /> },
+  { id: 'custom_details', label: 'شراء بالتفاصيل', icon: <Tag size={18} /> },
   { id: 'customers', label: 'الزبائن', icon: <Users size={18} /> },
   { id: 'reports', label: 'التقارير', icon: <FileText size={18} /> },
   { id: 'settings', label: 'الإعدادات', icon: <Settings size={18} /> },
@@ -313,6 +314,8 @@ export default function Admin() {
   const totalRevenue = orders.reduce((s, o) => s + (o.total || 0), 0);
   const pendingOrders = orders.filter((o) => o.status === 'pending').length;
   const allCustomers = new Set(orders.map((o) => o.customer || o.name)).size;
+  const customDesignOrders = designOrders.filter((order) => !order.orderType || order.orderType === 'custom');
+  const customDetailsOrders = designOrders.filter((order) => order.orderType === 'details');
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -599,7 +602,7 @@ export default function Admin() {
 
         {active === 'design_orders' && (
           <div className="admin-content" style={{ paddingTop: '60px', paddingBottom: '60px' }}>
-            <h2 className="admin-title">طلبات التصميم ({designOrders.length})</h2>
+            <h2 className="admin-title">طلبات التصميم ({customDesignOrders.length})</h2>
             <table className="admin-table">
               <thead>
                 <tr>
@@ -607,7 +610,7 @@ export default function Admin() {
                 </tr>
               </thead>
               <tbody>
-                {designOrders.map((order) => (
+                {customDesignOrders.map((order) => (
                   <tr key={order.id}>
                     <td><strong>{order.id}</strong></td>
                     <td>{order.customer || order.name}</td>
@@ -635,6 +638,63 @@ export default function Admin() {
                     <td>
                       {order.logo ? (
                         <button className="admin-btn-view" onClick={() => setViewingDesignImage(order.logo)}>
+                          <Eye size={14} /> عرض
+                        </button>
+                      ) : <span style={{ color: 'var(--gray-text)' }}>-</span>}
+                    </td>
+                    <td>
+                      {order.image ? (
+                        <button className="admin-btn-view" onClick={() => setViewingDesignImage(order.image)}>
+                          <Eye size={14} /> عرض
+                        </button>
+                      ) : <span style={{ color: 'var(--gray-text)' }}>-</span>}
+                    </td>
+                    <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.description || '-'}</td>
+                    <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.notes || '-'}</td>
+                    <td>
+                      <select className="admin-status-select" value={order.status}
+                        onChange={(e) => handleUpdateDesignStatus(order.id, e.target.value)}>
+                        {Object.entries(STATUS_MAP).map(([key, val]) => (
+                          <option key={key} value={key}>{val.label}</option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {active === 'custom_details' && (
+          <div className="admin-content" style={{ paddingTop: '60px', paddingBottom: '60px' }}>
+            <h2 className="admin-title">طلبات الشراء بالتفاصيل ({customDetailsOrders.length})</h2>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>رقم الطلب</th><th>العميل</th><th>الهاتف</th><th>البريد</th><th>الولاية</th><th>العنوان</th><th>نوع اللباس</th><th>القماش</th><th>الكمية</th><th>الصدر</th><th>الخصر</th><th>الأرداف</th><th>الطول</th><th>طرز</th><th>صورة الطرز</th><th>صورة مرجعية</th><th>الوصف</th><th>الملاحظات</th><th>الحالة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customDetailsOrders.map((order) => (
+                  <tr key={order.id}>
+                    <td><strong>{order.id}</strong></td>
+                    <td>{order.customer || order.name}</td>
+                    <td>{order.phone}</td>
+                    <td>{order.email || '-'}</td>
+                    <td>{order.wilaya}</td>
+                    <td>{order.address || '-'}</td>
+                    <td>{order.clothingType || '-'}</td>
+                    <td>{order.fabric || '-'}</td>
+                    <td>{order.quantity || '-'}</td>
+                    <td>{order.chest || '-'}</td>
+                    <td>{order.waist || '-'}</td>
+                    <td>{order.hips || '-'}</td>
+                    <td>{order.length || '-'}</td>
+                    <td>{order.tarzOption === 'with' ? 'بالطرز' : 'بدون طرز'}</td>
+                    <td>
+                      {order.tarzImage ? (
+                        <button className="admin-btn-view" onClick={() => setViewingDesignImage(order.tarzImage)}>
                           <Eye size={14} /> عرض
                         </button>
                       ) : <span style={{ color: 'var(--gray-text)' }}>-</span>}
