@@ -6,7 +6,7 @@
 
 const CACHE_PREFIX = 'mmb_cache_';
 const CACHE_EXPIRY_PREFIX = 'mmb_expiry_';
-const DEFAULT_EXPIRY_HOURS = 24; // Cache expires after 24 hours
+const DEFAULT_EXPIRY_HOURS = 72; // Cache expires after 72 hours
 
 class CacheManager {
   /**
